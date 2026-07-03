@@ -6,14 +6,14 @@
 
 ```
 SmartCafe-OS/
+├── repository.json            # HA Add-on仓库配置
 ├── smartcafe_server/          # 服务端（HA Add-on）
-│   └── smartcafe_server/      # Add-on代码
-│       ├── server/            # Node.js服务端
-│       ├── config.yaml        # Add-on配置
-│       ├── Dockerfile         # Docker构建文件
-│       └── run.sh             # 启动脚本
+│   ├── server/                # Node.js服务端
+│   ├── config.yaml            # Add-on配置
+│   ├── Dockerfile             # Docker构建文件
+│   └── run.sh                 # 启动脚本
 │
-└── smartcafe_control/         # HA集成（pc_manager）
+└── smartcafe_control/         # HA集成
     ├── manifest.json          # 集成配置
     ├── config_flow.py         # 配置流程
     ├── coordinator.py         # 设备同步与Ping检测
