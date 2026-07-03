@@ -1,4 +1,4 @@
-name: "SmartCafe Server"
+name: "智咖网吧智能管理系统"
 version: "1.0.0"
 slug: smartcafe-server
 description: >-
@@ -11,7 +11,7 @@ startup: services
 ingress: true
 ingress_port: 8765
 panel_icon: "mdi:monitor-dashboard"
-panel_title: "SmartCafe Server"
+panel_title: "智咖网吧智能管理系统"
 panel_admin: true
 boot: auto
 init: false
