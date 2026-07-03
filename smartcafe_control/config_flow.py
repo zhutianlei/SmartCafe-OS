@@ -66,13 +66,13 @@ class PCManagerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_HA_ASSISTANT_URL): str,
+                    vol.Required(CONF_HA_ASSISTANT_URL, default="http://localhost:8766"): str,
                     vol.Required(CONF_HA_ASSISTANT_TOKEN): str,
                 }
             ),
             errors=errors,
             description_placeholders={
-                "url_example": "http://192.168.1.100:8765",
+                "url_example": "http://localhost:8766",
             },
         )
 
