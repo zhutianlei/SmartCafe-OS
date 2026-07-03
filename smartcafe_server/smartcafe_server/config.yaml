@@ -1,0 +1,37 @@
+name: "SmartCafe Server"
+version: "1.0.0"
+slug: smartcafe-server
+description: >-
+  网吧智能管理系统服务端，终端安全对接Home Assistant。
+arch:
+  - amd64
+url: "https://github.com/zhutianlei/SmartCafe-OS"
+image: "ghcr.io/zhutianlei/smartcafe-server-{arch}"
+startup: services
+ingress: true
+ingress_port: 8765
+panel_icon: "mdi:monitor-dashboard"
+panel_title: "SmartCafe Server"
+panel_admin: true
+boot: auto
+init: false
+host_network: false
+ports:
+  8765/tcp: 8765
+ports_description:
+  8765/tcp: "终端 API 端口"
+map:
+  - type: data
+    read_only: false
+options:
+  ha_base_url: "http://homeassistant.local:8123"
+  ha_username: ""
+  ha_password: ""
+  token_refresh_time: ""
+  port: 8765
+schema:
+  ha_base_url: str
+  ha_username: str
+  ha_password: password
+  token_refresh_time: str
+  port: int

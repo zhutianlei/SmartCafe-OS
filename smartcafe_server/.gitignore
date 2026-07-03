@@ -1,0 +1,8 @@
+node_modules/
+server/data/
+hazhushou/server/data/
+hazhushou/server/node_modules/
+*.json
+!repository.json
+!hazhushou/server/package.json
+!hazhushou/server/package-lock.json
