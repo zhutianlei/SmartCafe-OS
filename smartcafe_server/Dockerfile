@@ -1,10 +1,13 @@
-FROM ghcr.io/home-assistant/amd64-base:latest
+FROM node:18-alpine
 
-RUN apk add --no-cache nodejs npm
+LABEL \
+  io.hass.version="1.0.0" \
+  io.hass.type="app" \
+  io.hass.arch="amd64"
 
 WORKDIR /app
 COPY server/ ./
-RUN npm ci --omit=dev || npm install
+RUN npm install --production
 
 RUN mkdir -p /data/smartcafe-server
 
