@@ -45,26 +45,18 @@ class SmartCafeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Step 1: Configure HA Assistant connection."""
         errors: dict[str, str] = {}
 
-        if user_input is not None:
-            url = user_input[CONF_HA_ASSISTANT_URL].strip().rstrip("/")
+        # 自动使用localhost连接服务端
+        self._ha_assistant_url = "http://localhost:8766"
 
-            # Validate URL
-            if not url.startswith(("http://", "https://")):
-                errors[CONF_HA_ASSISTANT_URL] = "invalid_url"
-            # Test connection
-            elif not await self._test_connection(url):
-                errors[CONF_HA_ASSISTANT_URL] = "connection_failed"
-            else:
-                self._ha_assistant_url = url
-                return await self.async_step_devices()
+        # Test connection
+        if not await self._test_connection(self._ha_assistant_url):
+            errors["base"] = "connection_failed"
+        else:
+            return await self.async_step_devices()
 
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_HA_ASSISTANT_URL, default="http://localhost:8766"): str,
-                }
-            ),
+            data_schema=vol.Schema({}),
             errors=errors,
         )
 

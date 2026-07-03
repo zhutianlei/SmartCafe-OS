@@ -2,11 +2,8 @@
   "config": {
     "step": {
       "user": {
-        "title": "连接智咖系统服务端",
-        "description": "输入智咖系统服务端地址",
-        "data": {
-          "ha_assistant_url": "服务端地址"
-        }
+        "title": "智咖系统",
+        "description": "正在连接智咖系统服务端..."
       },
       "single": {
         "title": "添加单台电脑",
