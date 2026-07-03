@@ -4,7 +4,7 @@ RUN apk add --no-cache nodejs npm
 
 WORKDIR /app
 COPY server/ ./
-RUN npm install --production
+RUN npm ci --omit=dev || npm install
 
 RUN mkdir -p /data/smartcafe-server
 
