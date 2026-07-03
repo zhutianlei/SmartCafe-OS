@@ -1,5 +1,5 @@
 {
-  "domain": "pc_manager",
+  "domain": "smartcafe_control",
   "name": "智咖系统",
   "codeowners": [],
   "config_flow": true,

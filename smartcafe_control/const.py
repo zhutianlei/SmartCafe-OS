@@ -1,10 +1,10 @@
-"""Constants for the PC Manager integration."""
+"""Constants for the SmartCafe Control integration."""
 
 from __future__ import annotations
 
 import ipaddress
 
-DOMAIN = "pc_manager"
+DOMAIN = "smartcafe_control"
 
 # Config entry data keys (stored in data)
 CONF_NAME = "name"
