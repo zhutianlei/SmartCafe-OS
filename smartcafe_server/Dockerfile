@@ -8,10 +8,11 @@ LABEL \
 
 RUN apk add --no-cache nodejs npm
 
-COPY server/ /opt/server/
 WORKDIR /opt/server
-RUN npm install --production
+COPY server/package.json ./
+RUN npm install
 
+COPY server/ ./
 RUN mkdir -p /data/smartcafe-server
 
 COPY run.sh /
