@@ -9,7 +9,7 @@ url: "https://github.com/zhutianlei/SmartCafe-OS"
 image: "ghcr.io/zhutianlei/smartcafe-server-{arch}"
 startup: services
 ingress: true
-ingress_port: 8765
+ingress_port: 8766
 panel_icon: "mdi:monitor-dashboard"
 panel_title: "智咖系统"
 panel_admin: true

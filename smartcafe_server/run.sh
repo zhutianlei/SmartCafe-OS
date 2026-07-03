@@ -17,7 +17,7 @@ cat > /data/smartcafe-server/config.json << EOF
   "ha_username": "${HA_USERNAME}",
   "ha_password": "${HA_PASSWORD}",
   "token_refresh_time": "${TOKEN_REFRESH_TIME}",
-  "port": 8765,
+  "port": 8766,
   "password_hash": "",
   "password_salt": ""
 }
