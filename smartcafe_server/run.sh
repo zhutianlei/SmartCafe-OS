@@ -9,6 +9,7 @@ HA_BASE_URL=$(bashio::config 'ha_base_url')
 HA_USERNAME=$(bashio::config 'ha_username')
 HA_PASSWORD=$(bashio::config 'ha_password')
 TOKEN_REFRESH_TIME=$(bashio::config 'token_refresh_time')
+PORT=$(bashio::config 'port')
 
 mkdir -p /data/smartcafe-server
 cat > /data/smartcafe-server/config.json << EOF
@@ -17,7 +18,7 @@ cat > /data/smartcafe-server/config.json << EOF
   "ha_username": "${HA_USERNAME}",
   "ha_password": "${HA_PASSWORD}",
   "token_refresh_time": "${TOKEN_REFRESH_TIME}",
-  "port": 8765,
+  "port": ${PORT},
   "password_hash": "",
   "password_salt": ""
 }

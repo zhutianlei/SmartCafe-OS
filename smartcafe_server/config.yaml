@@ -28,8 +28,10 @@ options:
   ha_username: ""
   ha_password: ""
   token_refresh_time: ""
+  port: 8765
 schema:
   ha_base_url: str
   ha_username: str
   ha_password: password
   token_refresh_time: str
+  port: int
