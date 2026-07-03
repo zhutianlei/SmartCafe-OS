@@ -23,7 +23,7 @@
    ```
    https://github.com/zhutianlei/SmartCafe-OS
    ```
-2. 安装「智咖网吧智能管理系统」
+2. 安装「智咖系统」
 3. 在配置中填写 HA 地址和凭据
 4. 启动后通过 HA 侧边栏访问管理面板
 

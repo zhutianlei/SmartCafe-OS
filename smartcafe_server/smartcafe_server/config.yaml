@@ -1,8 +1,8 @@
-name: "智咖网吧智能管理系统"
+name: "智咖系统"
 version: "1.0.0"
 slug: smartcafe-server
 description: >-
-  网吧智能管理系统服务端，终端安全对接Home Assistant。
+  智咖网吧智能管理系统服务端，终端安全对接Home Assistant。
 arch:
   - amd64
 url: "https://github.com/zhutianlei/SmartCafe-OS"
@@ -11,7 +11,7 @@ startup: services
 ingress: true
 ingress_port: 8765
 panel_icon: "mdi:monitor-dashboard"
-panel_title: "智咖网吧智能管理系统"
+panel_title: "智咖系统"
 panel_admin: true
 boot: auto
 init: false
