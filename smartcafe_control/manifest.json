@@ -1,6 +1,6 @@
 {
   "domain": "pc_manager",
-  "name": "PC Manager",
+  "name": "智咖系统",
   "codeowners": [],
   "config_flow": true,
   "dependencies": [],
