@@ -9,13 +9,13 @@ LABEL \
 RUN apk add --no-cache nodejs npm
 
 WORKDIR /opt/server
-COPY server/package.json ./
+COPY ./server/package.json ./
 RUN npm install
 
-COPY server/ ./
+COPY ./server/ ./
 RUN mkdir -p /data/smartcafe-server
 
-COPY run.sh /
+COPY ./run.sh /
 RUN chmod a+x /run.sh
 
 CMD [ "/run.sh" ]
