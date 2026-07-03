@@ -1,4 +1,4 @@
-"""Config flow for PC Manager integration."""
+"""Config flow for SmartCafe Control integration."""
 
 from __future__ import annotations
 
@@ -13,7 +13,6 @@ from homeassistant.config_entries import ConfigFlowResult, OptionsFlow, ConfigEn
 from homeassistant.core import callback
 
 from .const import (
-    CONF_HA_ASSISTANT_TOKEN,
     CONF_HA_ASSISTANT_URL,
     CONF_PING_COUNT,
     CONF_SCAN_INTERVAL,
@@ -25,21 +24,20 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-class PCManagerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for PC Manager."""
+class SmartCafeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle a config flow for SmartCafe Control."""
 
     VERSION = 1
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry: ConfigEntry) -> PCManagerOptionsFlow:
+    def async_get_options_flow(config_entry: ConfigEntry) -> SmartCafeOptionsFlow:
         """Get the options flow for this handler."""
-        return PCManagerOptionsFlow(config_entry)
+        return SmartCafeOptionsFlow(config_entry)
 
     def __init__(self) -> None:
         """Initialize config flow."""
         self._ha_assistant_url: str = ""
-        self._ha_assistant_token: str = ""
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -49,17 +47,15 @@ class PCManagerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             url = user_input[CONF_HA_ASSISTANT_URL].strip().rstrip("/")
-            token = user_input[CONF_HA_ASSISTANT_TOKEN].strip()
 
             # Validate URL
             if not url.startswith(("http://", "https://")):
                 errors[CONF_HA_ASSISTANT_URL] = "invalid_url"
             # Test connection
-            elif not await self._test_connection(url, token):
+            elif not await self._test_connection(url):
                 errors[CONF_HA_ASSISTANT_URL] = "connection_failed"
             else:
                 self._ha_assistant_url = url
-                self._ha_assistant_token = token
                 return await self.async_step_devices()
 
         return self.async_show_form(
@@ -67,13 +63,9 @@ class PCManagerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_HA_ASSISTANT_URL, default="http://localhost:8766"): str,
-                    vol.Required(CONF_HA_ASSISTANT_TOKEN): str,
                 }
             ),
             errors=errors,
-            description_placeholders={
-                "url_example": "http://localhost:8766",
-            },
         )
 
     async def async_step_devices(
@@ -83,7 +75,7 @@ class PCManagerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         # Fetch devices from HA Assistant
-        devices = await self._fetch_devices(self._ha_assistant_url, self._ha_assistant_token)
+        devices = await self._fetch_devices(self._ha_assistant_url)
 
         if user_input is not None:
             selected_ips = user_input.get("devices", [])
@@ -106,7 +98,6 @@ class PCManagerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                                 "host_ip": device["ip"],
                                 "mac": device.get("mac", ""),
                                 CONF_HA_ASSISTANT_URL: self._ha_assistant_url,
-                                CONF_HA_ASSISTANT_TOKEN: self._ha_assistant_token,
                             },
                         )
 
@@ -149,16 +140,12 @@ class PCManagerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data=user_input,
         )
 
-    async def _test_connection(self, url: str, token: str) -> bool:
+    async def _test_connection(self, url: str) -> bool:
         """Test connection to HA Assistant."""
         try:
             async with aiohttp.ClientSession() as session:
-                headers = {}
-                if token:
-                    headers["Authorization"] = f"Bearer {token}"
                 async with session.get(
                     f"{url}/admin/whitelist/devices",
-                    headers=headers,
                     timeout=aiohttp.ClientTimeout(total=10),
                 ) as resp:
                     return resp.status == 200
@@ -166,16 +153,12 @@ class PCManagerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             _LOGGER.warning("Connection test failed: %s", err)
             return False
 
-    async def _fetch_devices(self, url: str, token: str) -> list[dict]:
+    async def _fetch_devices(self, url: str) -> list[dict]:
         """Fetch devices from HA Assistant."""
         try:
             async with aiohttp.ClientSession() as session:
-                headers = {}
-                if token:
-                    headers["Authorization"] = f"Bearer {token}"
                 async with session.get(
                     f"{url}/admin/whitelist/devices",
-                    headers=headers,
                     timeout=aiohttp.ClientTimeout(total=10),
                 ) as resp:
                     if resp.status == 200:
@@ -185,8 +168,8 @@ class PCManagerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return []
 
 
-class PCManagerOptionsFlow(OptionsFlow):
-    """Handle options for PC Manager."""
+class SmartCafeOptionsFlow(OptionsFlow):
+    """Handle options for SmartCafe Control."""
 
     def __init__(self, config_entry: ConfigEntry) -> None:
         """Initialize options flow."""

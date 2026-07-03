@@ -15,7 +15,6 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
-    CONF_HA_ASSISTANT_TOKEN,
     CONF_HA_ASSISTANT_URL,
     CONF_PING_COUNT,
     CONF_SCAN_INTERVAL,
@@ -53,7 +52,6 @@ class PCManagerCoordinator(DataUpdateCoordinator[dict[str, dict[str, Any]]]):
         )
         self.data: dict[str, dict[str, Any]] = {}
         self._ha_assistant_url: str = entry.data.get(CONF_HA_ASSISTANT_URL, "")
-        self._ha_assistant_token: str = entry.data.get(CONF_HA_ASSISTANT_TOKEN, "")
 
     async def _async_update_data(self) -> dict[str, dict[str, Any]]:
         """Fetch devices from HA Assistant and ping them."""
@@ -134,13 +132,8 @@ class PCManagerCoordinator(DataUpdateCoordinator[dict[str, dict[str, Any]]]):
 
         try:
             async with aiohttp.ClientSession() as session:
-                headers = {}
-                if self._ha_assistant_token:
-                    headers["Authorization"] = f"Bearer {self._ha_assistant_token}"
-
                 async with session.get(
                     f"{self._ha_assistant_url}/admin/whitelist/devices",
-                    headers=headers,
                     timeout=aiohttp.ClientTimeout(total=10),
                 ) as resp:
                     if resp.status == 200:

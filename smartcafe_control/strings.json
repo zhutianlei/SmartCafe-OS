@@ -2,10 +2,10 @@
   "config": {
     "step": {
       "user": {
-        "title": "添加电脑",
-        "description": "选择添加模式：单台添加或批量导入。",
+        "title": "连接智咖系统服务端",
+        "description": "输入智咖系统服务端地址",
         "data": {
-          "import_mode": " "
+          "ha_assistant_url": "服务端地址"
         }
       },
       "single": {
