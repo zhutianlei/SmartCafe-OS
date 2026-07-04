@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const { initStorage, readPortSync } = require('./storage');
 const { scheduleRefresh } = require('./ha_auth');
+const { startHeartbeat } = require('./heartbeat');
 const apiRoutes = require('./api');
 const adminRoutes = require('./admin');
 
@@ -48,6 +49,7 @@ async function start() {
   try {
     await initStorage();
     scheduleRefresh();
+    startHeartbeat(30000);
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`[Server] HaAssistant 服务端已启动`);
       console.log(`[Server] 监听端口: ${PORT}`);

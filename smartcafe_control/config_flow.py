@@ -5,12 +5,12 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-import aiohttp
 import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult, OptionsFlow, ConfigEntry
 from homeassistant.core import callback
+from homeassistant.helpers.entity_registry import async_get
 
 from .const import (
     CONF_HA_ASSISTANT_URL,
@@ -22,6 +22,8 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+DEVICE_SENSOR_ENTITY = "sensor.smartcafe_devices"
 
 
 class SmartCafeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -37,36 +39,41 @@ class SmartCafeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     def __init__(self) -> None:
         """Initialize config flow."""
-        self._ha_assistant_url: str = ""
+        self._devices: list[dict] = []
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Step 1: Configure HA Assistant connection."""
+        """Step 1: Detect devices from HA sensor (heartbeat)."""
         errors: dict[str, str] = {}
 
-        DEFAULT_URL = "http://localhost:8766"
-
         if user_input is not None:
-            self._ha_assistant_url = user_input.get(CONF_HA_ASSISTANT_URL, DEFAULT_URL)
-            _LOGGER.warning("SmartCafe config flow: testing url=%s", self._ha_assistant_url)
+            return await self.async_step_devices()
 
-            # Test connection
-            if await self._test_connection(self._ha_assistant_url):
-                return await self.async_step_devices()
-            errors["base"] = "connection_failed"
+        # Read device list from HA sensor entity
+        state = self.hass.states.get(DEVICE_SENSOR_ENTITY)
+        if state is None:
+            errors["base"] = "no_sensor_found"
+            return self.async_show_form(
+                step_id="user",
+                data_schema=vol.Schema({}),
+                errors=errors,
+                description_placeholders={
+                    "entity_id": DEVICE_SENSOR_ENTITY,
+                },
+            )
 
-        return self.async_show_form(
-            step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_HA_ASSISTANT_URL, default=DEFAULT_URL
-                    ): str,
-                }
-            ),
-            errors=errors,
-        )
+        devices = state.attributes.get("devices", [])
+        if not devices:
+            errors["base"] = "no_devices_found"
+            return self.async_show_form(
+                step_id="user",
+                data_schema=vol.Schema({}),
+                errors=errors,
+            )
+
+        self._devices = devices
+        return await self.async_step_devices()
 
     async def async_step_devices(
         self, user_input: dict[str, Any] | None = None
@@ -74,18 +81,13 @@ class SmartCafeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Step 2: Select devices to import."""
         errors: dict[str, str] = {}
 
-        # Fetch devices from HA Assistant
-        devices = await self._fetch_devices(self._ha_assistant_url)
-
         if user_input is not None:
             selected_ips = user_input.get("devices", [])
             if not selected_ips:
                 errors["devices"] = "no_devices_selected"
             else:
-                # Create config entries for selected devices
-                for device in devices:
+                for device in self._devices:
                     if device["ip"] in selected_ips:
-                        # Check if already configured
                         await self.async_set_unique_id(device["ip"])
                         if self._abort_if_unique_id_configured():
                             continue
@@ -97,15 +99,14 @@ class SmartCafeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                                 "name": device.get("name", device["ip"]),
                                 "host_ip": device["ip"],
                                 "mac": device.get("mac", ""),
-                                CONF_HA_ASSISTANT_URL: self._ha_assistant_url,
+                                CONF_HA_ASSISTANT_URL: "",
                             },
                         )
 
                 return self.async_abort(reason="import_success")
 
-        # Build device options
         device_options = []
-        for device in devices:
+        for device in self._devices:
             label = f"{device.get('name', device['ip'])} ({device['ip']})"
             device_options.append({"value": device["ip"], "label": label})
 
@@ -139,37 +140,6 @@ class SmartCafeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             title=user_input.get("name", "PC"),
             data=user_input,
         )
-
-    async def _test_connection(self, url: str) -> bool:
-        """Test connection to HA Assistant."""
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f"{url}/api/devices",
-                    timeout=aiohttp.ClientTimeout(total=10),
-                ) as resp:
-                    _LOGGER.warning(
-                        "SmartCafe connection test: url=%s status=%s",
-                        url, resp.status,
-                    )
-                    return resp.status == 200
-        except Exception as err:
-            _LOGGER.warning("Connection test failed: %s %s", url, err)
-            return False
-
-    async def _fetch_devices(self, url: str) -> list[dict]:
-        """Fetch devices from HA Assistant."""
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f"{url}/api/devices",
-                    timeout=aiohttp.ClientTimeout(total=10),
-                ) as resp:
-                    if resp.status == 200:
-                        return await resp.json()
-        except Exception as err:
-            _LOGGER.warning("Failed to fetch devices: %s", err)
-        return []
 
 
 class SmartCafeOptionsFlow(OptionsFlow):

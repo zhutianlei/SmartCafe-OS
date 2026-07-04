@@ -3,13 +3,9 @@
     "step": {
       "user": {
         "title": "智咖系统",
-        "description": "填写智咖系统服务端地址",
-        "data": {
-          "ha_assistant_url": "服务端地址"
-        },
-        "data_description": {
-          "ha_assistant_url": "格式：http://IP:端口，例如 http://192.168.1.100:8766"
-        }
+        "description": "从智咖系统 Add-on 同步设备列表。\n\n请确认 Add-on 已启动并正常运行。",
+        "data": {},
+        "data_description": {}
       },
       "single": {
         "title": "添加单台电脑",
@@ -59,7 +55,8 @@
       }
     },
     "error": {
-      "connection_failed": "无法连接到服务端，请检查地址是否正确",
+      "no_sensor_found": "未找到设备传感器 {entity_id}，请确认智咖系统 Add-on 已启动",
+      "no_devices_found": "设备列表为空，请先在智咖系统中添加设备",
       "no_devices_selected": "请至少选择一台设备",
       "invalid_ip": "无效的 IP 地址格式",
       "invalid_mac": "无效的 MAC 地址格式（应为 AA:BB:CC:DD:EE:FF）",
