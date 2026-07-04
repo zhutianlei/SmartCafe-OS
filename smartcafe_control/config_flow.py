@@ -12,7 +12,6 @@ from homeassistant.config_entries import ConfigFlowResult, OptionsFlow, ConfigEn
 from homeassistant.core import callback
 
 from .const import (
-    CONF_HA_ASSISTANT_URL,
     CONF_PING_COUNT,
     CONF_SCAN_INTERVAL,
     DEFAULT_PING_COUNT,
@@ -43,36 +42,33 @@ class SmartCafeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Step 1: Detect devices from HA sensor (heartbeat)."""
+        """Step 1: Show intro and detect devices."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            return await self.async_step_devices()
+            try:
+                state = self.hass.states.get(DEVICE_SENSOR_ENTITY)
+                if state is None:
+                    errors["base"] = "no_sensor_found"
+                else:
+                    devices = state.attributes.get("devices", [])
+                    if not devices:
+                        errors["base"] = "no_devices_found"
+                    else:
+                        self._devices = devices
+                        return await self.async_step_devices()
+            except Exception as e:
+                _LOGGER.error("SmartCafe config flow error: %s", e)
+                errors["base"] = "no_sensor_found"
 
-        # Read device list from HA sensor entity
-        state = self.hass.states.get(DEVICE_SENSOR_ENTITY)
-        if state is None:
-            errors["base"] = "no_sensor_found"
-            return self.async_show_form(
-                step_id="user",
-                data_schema=vol.Schema({}),
-                errors=errors,
-                description_placeholders={
-                    "entity_id": DEVICE_SENSOR_ENTITY,
-                },
-            )
-
-        devices = state.attributes.get("devices", [])
-        if not devices:
-            errors["base"] = "no_devices_found"
-            return self.async_show_form(
-                step_id="user",
-                data_schema=vol.Schema({}),
-                errors=errors,
-            )
-
-        self._devices = devices
-        return await self.async_step_devices()
+        return self.async_show_form(
+            step_id="user",
+            data_schema=vol.Schema({}),
+            errors=errors,
+            description_placeholders={
+                "entity_id": DEVICE_SENSOR_ENTITY,
+            },
+        )
 
     async def async_step_devices(
         self, user_input: dict[str, Any] | None = None
@@ -98,19 +94,15 @@ class SmartCafeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                                 "name": device.get("name", device["ip"]),
                                 "host_ip": device["ip"],
                                 "mac": device.get("mac", ""),
-                                CONF_HA_ASSISTANT_URL: "",
                             },
                         )
 
                 return self.async_abort(reason="import_success")
 
-        device_options = []
+        device_options = {}
         for device in self._devices:
             label = f"{device.get('name', device['ip'])} ({device['ip']})"
-            device_options.append({"value": device["ip"], "label": label})
-
-        if not device_options:
-            return self.async_abort(reason="no_devices_found")
+            device_options[device["ip"]] = label
 
         return self.async_show_form(
             step_id="devices",
@@ -123,9 +115,6 @@ class SmartCafeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 }
             ),
             errors=errors,
-            description_placeholders={
-                "device_count": str(len(device_options)),
-            },
         )
 
     async def async_step_import(
@@ -145,16 +134,9 @@ class SmartCafeOptionsFlow(OptionsFlow):
     """Handle options for SmartCafe Control."""
 
     def __init__(self) -> None:
-        """Initialize options flow."""
         super().__init__()
 
     async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Directly show per-device settings."""
-        return await self.async_step_device_settings(user_input)
-
-    async def async_step_device_settings(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Per-device scan interval and ping count override."""
@@ -183,7 +165,7 @@ class SmartCafeOptionsFlow(OptionsFlow):
         )
 
         return self.async_show_form(
-            step_id="device_settings",
+            step_id="init",
             data_schema=vol.Schema(
                 {
                     vol.Required(
@@ -195,7 +177,4 @@ class SmartCafeOptionsFlow(OptionsFlow):
                 }
             ),
             errors=errors,
-            description_placeholders={
-                "name": self.config_entry.title,
-            },
         )
