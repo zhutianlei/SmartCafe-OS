@@ -10,7 +10,6 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult, OptionsFlow, ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.entity_registry import async_get
 
 from .const import (
     CONF_HA_ASSISTANT_URL,
@@ -35,7 +34,7 @@ class SmartCafeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> SmartCafeOptionsFlow:
         """Get the options flow for this handler."""
-        return SmartCafeOptionsFlow(config_entry)
+        return SmartCafeOptionsFlow()
 
     def __init__(self) -> None:
         """Initialize config flow."""
@@ -145,9 +144,9 @@ class SmartCafeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class SmartCafeOptionsFlow(OptionsFlow):
     """Handle options for SmartCafe Control."""
 
-    def __init__(self, config_entry: ConfigEntry) -> None:
+    def __init__(self) -> None:
         """Initialize options flow."""
-        self._config_entry = config_entry
+        super().__init__()
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -165,21 +164,21 @@ class SmartCafeOptionsFlow(OptionsFlow):
             scan_interval = user_input.get(CONF_SCAN_INTERVAL)
             ping_count = user_input.get(CONF_PING_COUNT)
 
-            new_options = dict(self._config_entry.options)
+            new_options = dict(self.config_entry.options)
             if scan_interval is not None:
                 new_options[CONF_SCAN_INTERVAL] = scan_interval
             if ping_count is not None:
                 new_options[CONF_PING_COUNT] = ping_count
 
             self.hass.config_entries.async_update_entry(
-                self._config_entry, options=new_options
+                self.config_entry, options=new_options
             )
             return self.async_create_entry(title="", data={})
 
-        current_interval = self._config_entry.options.get(
+        current_interval = self.config_entry.options.get(
             CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
         )
-        current_count = self._config_entry.options.get(
+        current_count = self.config_entry.options.get(
             CONF_PING_COUNT, DEFAULT_PING_COUNT
         )
 
@@ -197,6 +196,6 @@ class SmartCafeOptionsFlow(OptionsFlow):
             ),
             errors=errors,
             description_placeholders={
-                "name": self._config_entry.title,
+                "name": self.config_entry.title,
             },
         )
