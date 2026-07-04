@@ -1,5 +1,5 @@
 name: "智咖系统"
-version: "1.0.1"
+version: "1.0.2"
 slug: smartcafe-server
 description: >-
   智咖网吧智能管理系统服务端，终端安全对接Home Assistant。
@@ -15,7 +15,7 @@ panel_title: "智咖系统"
 panel_admin: true
 boot: auto
 init: false
-host_network: true
+host_network: false
 ports:
   8766/tcp: 8766
 ports_description:
