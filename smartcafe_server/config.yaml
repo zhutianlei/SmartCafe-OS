@@ -1,5 +1,5 @@
 name: "智咖系统"
-version: "1.0.3"
+version: "1.0.4"
 slug: smartcafe-server
 description: >-
   智咖网吧智能管理系统服务端，终端安全对接Home Assistant。
