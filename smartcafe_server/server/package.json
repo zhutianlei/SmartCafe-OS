@@ -1,6 +1,6 @@
 {
   "name": "ha-assistant-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "HaAssistant 服务端 - 局域网终端管理",
   "main": "server.js",
   "scripts": {
