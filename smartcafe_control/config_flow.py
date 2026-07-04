@@ -49,6 +49,7 @@ class SmartCafeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             self._ha_assistant_url = user_input.get(CONF_HA_ASSISTANT_URL, DEFAULT_URL)
+            _LOGGER.warning("SmartCafe config flow: testing url=%s", self._ha_assistant_url)
 
             # Test connection
             if await self._test_connection(self._ha_assistant_url):
@@ -147,9 +148,13 @@ class SmartCafeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     f"{url}/api/devices",
                     timeout=aiohttp.ClientTimeout(total=10),
                 ) as resp:
+                    _LOGGER.warning(
+                        "SmartCafe connection test: url=%s status=%s",
+                        url, resp.status,
+                    )
                     return resp.status == 200
         except Exception as err:
-            _LOGGER.warning("Connection test failed: %s", err)
+            _LOGGER.warning("Connection test failed: %s %s", url, err)
             return False
 
     async def _fetch_devices(self, url: str) -> list[dict]:
