@@ -35,3 +35,4 @@ schema:
   token_refresh_time: str
 breaking_versions:
   - "1.0.4"
+  - "1.0.5"
