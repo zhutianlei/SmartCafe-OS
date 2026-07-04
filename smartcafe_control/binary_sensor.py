@@ -1,4 +1,4 @@
-"""Binary sensor platform for PC Manager - online status via ping."""
+"""Binary sensor platform for SmartCafe Control - online status via ping."""
 
 from __future__ import annotations
 
@@ -10,21 +10,36 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 
+_trackeds: set[str] = set()
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up PC Manager binary sensor from a config entry."""
+    """Set up SmartCafe binary sensor from a config entry."""
     coordinator = hass.data[DOMAIN]["coordinator"]
 
-    # Create sensors for all devices from coordinator
     entities = []
     for ip, device_data in coordinator.data.items():
-        entities.append(PCManagerBinarySensor(coordinator, ip, device_data))
+        if ip not in _trackeds:
+            _trackeds.add(ip)
+            entities.append(PCManagerBinarySensor(coordinator, ip, device_data))
 
     async_add_entities(entities)
+
+    @callback
+    def _on_update() -> None:
+        new_entities = []
+        for ip, device_data in coordinator.data.items():
+            if ip not in _trackeds:
+                _trackeds.add(ip)
+                new_entities.append(PCManagerBinarySensor(coordinator, ip, device_data))
+        if new_entities:
+            async_add_entities(new_entities)
+
+    coordinator.async_add_listener(_on_update)
 
 
 class PCManagerBinarySensor(CoordinatorEntity, BinarySensorEntity):
@@ -45,12 +60,11 @@ class PCManagerBinarySensor(CoordinatorEntity, BinarySensorEntity):
         self._attr_device_info = {
             "identifiers": {(DOMAIN, ip)},
             "name": device_data.get("name", ip),
-            "manufacturer": "PC Manager",
+            "manufacturer": "SmartCafe",
         }
 
     @property
     def is_on(self) -> bool | None:
-        """Return True if the PC is reachable via ping."""
         device_data = self.coordinator.data.get(self._ip)
         if device_data:
             return device_data.get("is_online", False)
@@ -58,5 +72,4 @@ class PCManagerBinarySensor(CoordinatorEntity, BinarySensorEntity):
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
         self.async_write_ha_state()

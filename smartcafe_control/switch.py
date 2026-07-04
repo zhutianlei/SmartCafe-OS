@@ -1,4 +1,4 @@
-"""Switch platform for PC Manager - WOL wake-on-LAN switch."""
+"""Switch platform for SmartCafe Control - WOL wake-on-LAN switch."""
 
 from __future__ import annotations
 
@@ -15,6 +15,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import CONF_MAC, CONF_HOST_IP, DOMAIN, WOL_PORT
 
 _LOGGER = logging.getLogger(__name__)
+
+_trackeds: set[str] = set()
 
 
 def _send_wol(mac_address: str) -> None:
@@ -35,15 +37,28 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up PC Manager switch from a config entry."""
+    """Set up SmartCafe switch from a config entry."""
     coordinator = hass.data[DOMAIN]["coordinator"]
 
-    # Create switches for all devices from coordinator
     entities = []
     for ip, device_data in coordinator.data.items():
-        entities.append(PCManagerSwitch(coordinator, ip, device_data))
+        if ip not in _trackeds:
+            _trackeds.add(ip)
+            entities.append(PCManagerSwitch(coordinator, ip, device_data))
 
     async_add_entities(entities)
+
+    @callback
+    def _on_update() -> None:
+        new_entities = []
+        for ip, device_data in coordinator.data.items():
+            if ip not in _trackeds:
+                _trackeds.add(ip)
+                new_entities.append(PCManagerSwitch(coordinator, ip, device_data))
+        if new_entities:
+            async_add_entities(new_entities)
+
+    coordinator.async_add_listener(_on_update)
 
 
 class PCManagerSwitch(CoordinatorEntity, SwitchEntity):
@@ -54,7 +69,6 @@ class PCManagerSwitch(CoordinatorEntity, SwitchEntity):
     _attr_icon = "mdi:desktop-tower-monitor"
 
     def __init__(self, coordinator, ip: str, device_data: dict) -> None:
-        """Initialize the switch."""
         super().__init__(coordinator)
         self._ip = ip
         self._device_data = device_data
@@ -63,12 +77,11 @@ class PCManagerSwitch(CoordinatorEntity, SwitchEntity):
         self._attr_device_info = {
             "identifiers": {(DOMAIN, ip)},
             "name": device_data.get("name", ip),
-            "manufacturer": "PC Manager",
+            "manufacturer": "SmartCafe",
         }
 
     @property
     def is_on(self) -> bool | None:
-        """Return True if the PC is online (based on ping)."""
         device_data = self.coordinator.data.get(self._ip)
         if device_data:
             return device_data.get("is_online", False)
@@ -76,11 +89,9 @@ class PCManagerSwitch(CoordinatorEntity, SwitchEntity):
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
         self.async_write_ha_state()
 
     def turn_on(self, **kwargs: Any) -> None:
-        """Turn on the PC by sending a Wake-on-LAN magic packet."""
         device_data = self.coordinator.data.get(self._ip)
         mac = device_data.get("mac", "") if device_data else ""
 
@@ -95,11 +106,4 @@ class PCManagerSwitch(CoordinatorEntity, SwitchEntity):
             _LOGGER.error("Failed to send WOL to %s: %s", self._ip, err)
 
     def turn_off(self, **kwargs: Any) -> None:
-        """Turn off the PC.
-
-        Currently a no-op. Reserved for future SSH shutdown extension.
-        """
-        _LOGGER.info(
-            "Turn off called for %s - not implemented (reserved for SSH extension)",
-            self._ip,
-        )
+        _LOGGER.info("Turn off called for %s - not implemented", self._ip)
