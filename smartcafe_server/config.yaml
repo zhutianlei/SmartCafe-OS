@@ -17,9 +17,9 @@ boot: auto
 init: false
 host_network: true
 ports:
-  8765/tcp: 8765
+  8766/tcp: 8766
 ports_description:
-  8765/tcp: "终端 API 端口"
+  8766/tcp: "终端 API 端口"
 map:
   - type: data
     read_only: false
