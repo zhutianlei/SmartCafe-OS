@@ -45,7 +45,7 @@ class SmartCafeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Step 1: Configure HA Assistant connection."""
         errors: dict[str, str] = {}
 
-        DEFAULT_URL = "http://smartcafe-server:8766"
+        DEFAULT_URL = "http://localhost:8766"
 
         if user_input is not None:
             self._ha_assistant_url = user_input.get(CONF_HA_ASSISTANT_URL, DEFAULT_URL)
