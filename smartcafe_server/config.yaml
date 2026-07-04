@@ -33,3 +33,5 @@ schema:
   ha_username: str
   ha_password: password
   token_refresh_time: str
+breaking_versions:
+  - "1.0.4"
