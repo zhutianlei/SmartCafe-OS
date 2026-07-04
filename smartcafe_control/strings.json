@@ -3,7 +3,13 @@
     "step": {
       "user": {
         "title": "智咖系统",
-        "description": "正在连接智咖系统服务端..."
+        "description": "填写智咖系统服务端地址",
+        "data": {
+          "ha_assistant_url": "服务端地址"
+        },
+        "data_description": {
+          "ha_assistant_url": "格式：http://IP:端口，例如 http://192.168.1.100:8766"
+        }
       },
       "single": {
         "title": "添加单台电脑",
@@ -53,6 +59,8 @@
       }
     },
     "error": {
+      "connection_failed": "无法连接到服务端，请检查地址是否正确",
+      "no_devices_selected": "请至少选择一台设备",
       "invalid_ip": "无效的 IP 地址格式",
       "invalid_mac": "无效的 MAC 地址格式（应为 AA:BB:CC:DD:EE:FF）",
       "mac_already_configured": "该 MAC 地址已被其他设备使用",
@@ -60,6 +68,8 @@
     },
     "abort": {
       "already_configured_device": "该设备已配置",
+      "no_devices_found": "服务端没有找到设备，请先在智咖系统中添加设备",
+      "import_success": "设备导入成功",
       "batch_import_success": "批量导入完成：成功 {success} 台，失败 {failed} 台",
       "batch_import_failed": "批量导入失败：成功 {success} 台，失败 {failed} 台。请检查格式。",
       "import_failed": "导入失败：数据格式错误",

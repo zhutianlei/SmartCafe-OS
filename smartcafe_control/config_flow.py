@@ -45,18 +45,23 @@ class SmartCafeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Step 1: Configure HA Assistant connection."""
         errors: dict[str, str] = {}
 
-        # 自动使用localhost连接服务端
-        self._ha_assistant_url = "http://localhost:8766"
+        if user_input is not None:
+            self._ha_assistant_url = user_input.get(CONF_HA_ASSISTANT_URL, "http://localhost:8766")
 
-        # Test connection
-        if not await self._test_connection(self._ha_assistant_url):
+            # Test connection
+            if await self._test_connection(self._ha_assistant_url):
+                return await self.async_step_devices()
             errors["base"] = "connection_failed"
-        else:
-            return await self.async_step_devices()
 
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema({}),
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_HA_ASSISTANT_URL, default="http://localhost:8766"
+                    ): str,
+                }
+            ),
             errors=errors,
         )
 
@@ -137,7 +142,7 @@ class SmartCafeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
-                    f"{url}/admin/whitelist/devices",
+                    f"{url}/api/devices",
                     timeout=aiohttp.ClientTimeout(total=10),
                 ) as resp:
                     return resp.status == 200
@@ -150,7 +155,7 @@ class SmartCafeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
-                    f"{url}/admin/whitelist/devices",
+                    f"{url}/api/devices",
                     timeout=aiohttp.ClientTimeout(total=10),
                 ) as resp:
                     if resp.status == 200:

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { findByIP, getConfig, recordConnection } = require('./storage');
+const { findByIP, getConfig, recordConnection, getWhitelist } = require('./storage');
 const { getHaTokens } = require('./ha_auth');
 
 router.get('/terminal/pull', async (req, res) => {
@@ -56,6 +56,20 @@ router.get('/terminal/pull', async (req, res) => {
     console.error(`[API] 内部错误:`, err.message);
     res.status(500).json({ error: 'internal' });
   }
+});
+
+// 公共设备列表接口（供HA集成config_flow使用，无需ingress header）
+router.get('/devices', (req, res) => {
+  const whitelist = getWhitelist();
+  const devices = whitelist
+    .filter(item => item.ip)
+    .map(item => ({
+      ip: item.ip,
+      mac: item.mac || '',
+      name: item.name || item.ip,
+      category: item.category || ''
+    }));
+  res.json(devices);
 });
 
 module.exports = router;
